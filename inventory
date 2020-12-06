@@ -1,0 +1,8 @@
+[home_server]
+HomeServer
+
+[home_server:vars]
+ansible_port=10022
+ansible_user=root
+ansible_ssh_private_key_file=/home/vagrant/.ssh/id_home_server
+docker_compose_version=1.27.4

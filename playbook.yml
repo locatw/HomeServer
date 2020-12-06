@@ -1,0 +1,123 @@
+- hosts: home_server
+  become: true
+  tasks:
+    - name: disable selinux
+      lineinfile:
+        dest: /etc/selinux/config
+        state: present
+        backrefs: yes
+        regexp: '^#?SELINUX'
+        line: 'SELINUX=disabled'
+      notify:
+        - reboot
+    - name: add user
+      user:
+        name: loca
+        password: '{{ loca_password | password_hash("sha512") }}'
+        update_password: always
+        group: loca
+        groups: wheel
+        append: yes
+        state: present
+    - name: allow all users to become super user
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: "%wheel\t\tALL=(ALL)\tALL"
+    - name: add public keys of users
+      ansible.posix.authorized_key:
+        user: loca
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_home_server_loca.pub') }}"
+    - name: change sshd setting
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        state: present
+        backrefs: yes
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+      with_items:
+        - regexp: '^#Port'
+          line: 'Port 10022'
+        - regexp: '^#PermitRootLogin'
+          line: 'PermitRootLogin yes'
+        - regexp: '^PasswordAuthentication'
+          line: 'PasswordAuthentication no'
+        - regexp: '^#?PubkeyAuthentication'
+          line: 'PubkeyAuthentication yes'
+      notify:
+        - restart sshd
+    - name: install some packages
+      yum:
+        name:
+          - unzip
+          - vim
+          - zip
+        state: latest
+        update_cache: yes
+    - name: install packages for docker
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: latest
+        update_cache: yes
+    - name: add stable repository of docker
+      yum_repository:
+        name: docker-ce
+        description: Docker stable repository
+        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
+        gpgkey: https://download.docker.com/linux/centos/gpg
+        gpgcheck: yes
+    - name: install docker
+      yum:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+        state: latest
+        update_cache: yes
+    - name: run docker at starting os
+      systemd:
+        name: docker
+        enabled: yes
+        masked: no
+    - name: manage docker as a non-root user
+      group:
+        name: docker
+        state: present
+    - name: add user 'loca' to docker group
+      user:
+        name: loca
+        groups: docker
+        append: yes
+    - name: check docker-compose installed
+      stat:
+        path: /usr/local/bin/docker-compose
+      register: docker_compose
+    - name: check docker-compose version
+      shell: docker-compose --version
+      register: check_dc_version_result
+      when: docker_compose.stat.exists
+    - name: install docker compose
+      get_url:
+        url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}
+        dest: /usr/local/bin/docker-compose
+        mode: 'u+x,g+x,o+x'
+        force: yes
+      when: not docker_compose.stat.exists or docker_compose_version not in check_dc_version_result.stdout
+    - name: set alias for docker compose
+      lineinfile:
+        path=/home/loca/.bashrc
+        line="alias dc='docker-compose'"
+        state=present
+  handlers:
+    - name: reboot
+      reboot:
+    - name: restart sshd
+      service:
+        name: sshd
+        state: restarted
+        enabled: yes
