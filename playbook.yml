@@ -48,6 +48,14 @@
           line: 'PubkeyAuthentication yes'
       notify:
         - restart sshd
+    - name: stop unnecessary daemons
+      systemd:
+        name: '{{ item.name }}'
+        enabled: no
+        state: stopped
+        masked: yes
+      with_items:
+        - name: postfix
     - name: install some packages
       yum:
         name:
