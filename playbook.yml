@@ -1,86 +1,41 @@
 - hosts: home_server
   become: true
   tasks:
-    - name: disable selinux
-      lineinfile:
-        dest: /etc/selinux/config
-        state: present
-        backrefs: yes
-        regexp: '^#?SELINUX'
-        line: 'SELINUX=disabled'
-      notify:
-        - reboot
-    - name: add user
-      user:
-        name: loca
-        password: '{{ loca_password | password_hash("sha512") }}'
-        update_password: always
-        group: loca
-        groups: wheel
-        append: yes
-        state: present
-    - name: allow all users to become super user
-      lineinfile:
-        dest: /etc/sudoers
-        state: present
-        regexp: '^%wheel'
-        line: "%wheel\t\tALL=(ALL)\tALL"
-    - name: add public keys of users
-      ansible.posix.authorized_key:
-        user: loca
-        state: present
-        key: "{{ lookup('file', '~/.ssh/id_home_server_loca.pub') }}"
-    - name: change sshd setting
-      lineinfile:
-        dest: /etc/ssh/sshd_config
-        state: present
-        backrefs: yes
-        regexp: '{{ item.regexp }}'
-        line: '{{ item.line }}'
-      with_items:
-        - regexp: '^#Port'
-          line: 'Port 10022'
-        - regexp: '^#PermitRootLogin'
-          line: 'PermitRootLogin yes'
-        - regexp: '^PasswordAuthentication'
-          line: 'PasswordAuthentication no'
-        - regexp: '^#?PubkeyAuthentication'
-          line: 'PubkeyAuthentication yes'
-      notify:
-        - restart sshd
-    - name: stop unnecessary daemons
-      systemd:
-        name: '{{ item.name }}'
-        enabled: no
-        state: stopped
-        masked: yes
-      with_items:
-        - name: postfix
     - name: install some packages
-      yum:
+      apt:
         name:
           - unzip
-          - vim
           - zip
         state: latest
         update_cache: yes
     - name: install packages for docker
-      yum:
+      apt:
         name:
-          - yum-utils
-          - device-mapper-persistent-data
-          - lvm2
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg-agent
+          - software-properties-common
         state: latest
         update_cache: yes
-    - name: add stable repository of docker
-      yum_repository:
-        name: docker-ce
-        description: Docker stable repository
-        baseurl: https://download.docker.com/linux/centos/$releasever/$basearch/stable
-        gpgkey: https://download.docker.com/linux/centos/gpg
-        gpgcheck: yes
+    - name: add docker's official GPG key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: verify docker's official GPG key
+      shell: apt-key fingerprint 0EBFCD88 | grep "9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88"
+      environment:
+        # suppress warning "apt-key output should not be parsed (stdout is not a terminal)"
+        APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE: 1
+    - name: get lsb_release
+      shell: lsb_release -cs
+      register: lsb_release
+    - name: add docker repository
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ lsb_release.stdout }} stable
+        state: present
     - name: install docker
-      yum:
+      apt:
         name:
           - docker-ce
           - docker-ce-cli
@@ -121,11 +76,3 @@
         path=/home/loca/.bashrc
         line="alias dc='docker-compose'"
         state=present
-  handlers:
-    - name: reboot
-      reboot:
-    - name: restart sshd
-      service:
-        name: sshd
-        state: restarted
-        enabled: yes
