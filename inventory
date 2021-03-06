@@ -1,5 +1,5 @@
 [home_server]
-HomeServer
+home-server
 
 [home_server:vars]
 ansible_port=10022
