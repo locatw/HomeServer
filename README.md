@@ -40,6 +40,24 @@ and restart sshd.
 - `$ sudo ufw allow from 192.168.3.0/24 to any port {SSH-PORT} proto tcp`
 - `$ sudo ufw enable`
 
+### 6. add static ip address
+
+Make and configure `/etc/netplan/99_config.yaml`.
+
+```yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eno1:
+      dhcp4: false
+      dhcp6: false
+      addresses: [192.168.3.183/24]
+      gateway4: 192.168.3.1
+      nameservers:
+        addresses: [192.168.3.1]
+```
+
 ## Setup host
 
 ### 1. Make secret.yml
