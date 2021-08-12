@@ -1,0 +1,2 @@
+docker_ce_version: 5:20.10.8~3-0~ubuntu-focal
+user_of_docker_group: loca
