@@ -4,3 +4,4 @@
     - systemd-resolved
     - docker
     - docker-compose
+    - dns-server

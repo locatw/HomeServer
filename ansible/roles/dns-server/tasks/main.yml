@@ -1,0 +1,12 @@
+- name: Locate dns-server docker files
+  copy:
+    src: ../../../docker/
+    dest: /home/loca/dns-server/docker/
+    owner: loca
+    group: loca
+- name: Locate dns-server docker-compose files
+  copy:
+    src: ../../../docker-compose/
+    dest: /home/loca/dns-server/docker-compose/
+    owner: loca
+    group: loca

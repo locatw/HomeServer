@@ -1,0 +1,10 @@
+version: "3.9"
+
+services:
+  dns_server:
+    build:
+      context: ../../docker/dns-server
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+    restart: always

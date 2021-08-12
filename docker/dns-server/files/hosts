@@ -1,0 +1,7 @@
+192.168.3.1     router-main.network.home
+192.168.3.2     sw-main.network.home
+192.168.3.10    ap-main.network.home
+192.168.3.11    ap-iot.network.home
+192.168.3.20    home-server.server.home
+192.168.3.30    docker-host.server.home
+192.168.3.60    dev.docker-host.server.home
