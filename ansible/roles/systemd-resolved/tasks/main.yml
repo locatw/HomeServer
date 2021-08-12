@@ -1,0 +1,17 @@
+# To use dnsmasq in docker container, stop using local DNS stub lister of systemd-resolved.
+- name: Stop using DNS stub listener
+  replace:
+    path: /etc/systemd/resolved.conf
+    regexp: "^#*DNSStubListener=.*$"
+    replace: "DNSStubListener=no"
+- name: Use external DNS resolver from /etc/resolv.conf
+  file:
+    src: /run/systemd/resolve/resolv.conf
+    dest: /etc/resolv.conf
+    state: link
+    force: yes
+- name: Restart systemd
+  systemd:
+    name: systemd-resolved
+    state: restarted
+    daemon_reload: yes

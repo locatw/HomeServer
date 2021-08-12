@@ -1,0 +1,4 @@
+- hosts: docker_host
+  become: true
+  roles:
+    - systemd-resolved
