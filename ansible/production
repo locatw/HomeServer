@@ -1,5 +1,5 @@
 [docker_host]
-192.168.3.221
+192.168.3.30
 
 [docker_host:vars]
 ansible_port=10022
