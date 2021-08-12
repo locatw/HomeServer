@@ -52,15 +52,31 @@ network:
     eno1:
       dhcp4: false
       dhcp6: false
-      addresses: [192.168.3.183/24]
-      gateway4: 192.168.3.1
+      addresses: [IP_ADDRESS/24]
+      gateway4: DEFAULT_GATEWAY_ADDRESS
       nameservers:
-        addresses: [192.168.3.1]
+        addresses: [NAMESERVER_ADDRESS]
 ```
+
+#### References
+
+- [Network - Configuration | Ubuntu](https://ubuntu.com/server/docs/network-configuration)
+- [Netplan - Reference | Backend-agnostic network configuration in YAML](https://netplan.io/reference/)
 
 ## Setup host
 
-### 1. Make secret.yml
+### 1. Install Ansible
+
+Install Ansible to control pc.
+
+1. `$ sudo yum install epel-release`
+2. `$ sudo yum install ansible`
+
+And install ansible plugins.
+
+`$ ansible-galaxy collection install ansible.posix`
+
+### 2. Make secret.yml
 
 Make `secret.yml`
 
@@ -68,7 +84,7 @@ Make `secret.yml`
 
 Add values to `secret.yml`.
 
-### 2. Deploy
+### 3. Deploy
 
 `$ ./deploy.sh`
 
