@@ -1,0 +1,20 @@
+- name: Check docker-compose installed
+  stat:
+    path: /usr/local/bin/docker-compose
+  register: docker_compose
+- name: Check docker-compose version
+  shell: docker-compose --version
+  register: check_dc_version_result
+  when: docker_compose.stat.exists
+- name: Install docker compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/{{ docker_compose_version }}/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}
+    dest: /usr/local/bin/docker-compose
+    mode: 'u+x,g+x,o+x'
+    force: yes
+  when: not docker_compose.stat.exists or docker_compose_version not in check_dc_version_result.stdout
+- name: Set alias for docker compose
+  lineinfile:
+    path: /home/{{ docker_user }}/.bashrc
+    line: "alias dc='docker-compose'"
+    state: present

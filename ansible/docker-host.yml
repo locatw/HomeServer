@@ -3,3 +3,4 @@
   roles:
     - systemd-resolved
     - docker
+    - docker-compose
