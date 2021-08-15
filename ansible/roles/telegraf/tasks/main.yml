@@ -1,0 +1,19 @@
+- name: Add influxData repository key
+  apt_key:
+    url: https://repos.influxdata.com/influxdb.key
+    state: present
+- name: Add influxData repository
+  apt_repository:
+    repo: "deb https://repos.influxdata.com/debian {{ debian_codename }} stable"
+    filename: influxdb
+    state: present
+- name: Install telegraf
+  apt:
+    name: "telegraf={{ telegraf_version }}"
+    state: present
+    update_cache: yes
+- name: Start telegraf
+  systemd:
+    name: telegraf
+    enabled: yes
+    state: started

@@ -1,0 +1,16 @@
+- name: Locate environement file
+  copy:
+    src: ../../../telegraf/.env
+    dest: /etc/default/telegraf
+    owner: root
+    group: root
+- name: Locate telegraf config file
+  copy:
+    src: ../../../telegraf/telegraf.conf
+    dest: /etc/telegraf/telegraf.conf
+    owner: root
+    group: root
+- name: Restart telegraf
+  systemd:
+    name: telegraf
+    state: restarted

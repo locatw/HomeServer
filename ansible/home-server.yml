@@ -1,4 +1,7 @@
 - hosts: home_server
   roles:
     - proxmox-init
-    - qemu-guest-agent
+    - role: qemu-guest-agent
+      when: is_vm | bool
+    - telegraf
+    - home-server-metrics

@@ -1,0 +1,2 @@
+debian_codename: buster
+telegraf_version: 1.19.*
