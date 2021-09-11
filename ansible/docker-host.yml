@@ -2,6 +2,7 @@
   become: true
   roles:
     - systemd-resolved
+    - timesyncd-init
     - docker
     - docker-compose
     - dns-server

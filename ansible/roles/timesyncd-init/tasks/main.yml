@@ -1,0 +1,14 @@
+- name: Specify NTP server
+  replace:
+    path: /etc/systemd/timesyncd.conf
+    regexp: "{{ item.regexp }}"
+    replace: "{{ item.replace }}"
+  with_items:
+    - { regexp: "#NTP=.*", replace: "NTP=router-main.network.home" }
+    - { regexp: "#PollIntervalMinSec=.*", replace: "PollIntervalMinSec=3600" }
+    - { regexp: "#PollIntervalMaxSec=.*", replace: "PollIntervalMaxSec=86400" }
+- name: Restart systemd-timesyncd
+  systemd:
+    name: systemd-timesyncd
+    state: restarted
+    daemon_reload: yes

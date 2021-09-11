@@ -3,5 +3,6 @@
     - proxmox-init
     - role: qemu-guest-agent
       when: is_vm | bool
+    - chrony
     - telegraf
     - home-server-metrics
