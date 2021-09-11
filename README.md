@@ -37,7 +37,7 @@ and restart sshd.
 
 - `$ sudo ufw default deny incoming`
 - `$ sudo ufw default allow outgoing`
-- `$ sudo ufw allow from 192.168.3.0/24 to any port {SSH-PORT} proto tcp`
+- `$ sudo ufw allow from 192.168.0.0/16 to any port {SSH-PORT} proto tcp`
 - `$ sudo ufw enable`
 
 ### 6. add static ip address

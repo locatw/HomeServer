@@ -1,13 +1,13 @@
 [docker_host]
-192.168.3.60
+192.168.5.60
 
 [docker_host:vars]
-ansible_port=22
+ansible_port=10022
 ansible_user=loca
 ansible_ssh_private_key_file=/home/vagrant/.ssh/id_docker_host
 
 [home_server]
-192.168.3.90
+192.168.5.90
 
 [home_server:vars]
 ansible_port=10022
