@@ -6,3 +6,4 @@
 192.168.5.20    home-server.server.home
 192.168.5.30    docker-host.server.home
 192.168.5.60    dev.docker-host.server.home
+192.168.5.90    dev.proxmox.server.home
