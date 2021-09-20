@@ -1,69 +1,6 @@
 # HomeServer
 
-## Initial setup
-
-### 1. install OS
-
-Install Ubuntu 20.04 LTS
-
-### 2. generate ssh key
-
-Generate ssh key at another pc.
-
-`$ ssh-keygen -t rsa -b 4096`
-
-### 3. add public key
-
-Add public key to HomeServer host.
-
-`$ ssh-copy-id -i ~/.ssh/{PUBLIC_KEY} {USER}@{IP_ADDRESS}`
-
-### 4. configure sshd
-
-`$ sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.d/sshd.conf`
-
-Edit `/etc/ssh/sshd_config.d/sshd.conf`
-
-- `Port {PORT}`
-- `PermitRootLogin: prohibit-password`
-- `PubkeyAuthentication yes`
-- `PasswordAuthentication no`
-
-and restart sshd.
-
-`$ sudo systemctl restart sshd.service`
-
-### 5. configure firewalld
-
-- `$ sudo ufw default deny incoming`
-- `$ sudo ufw default allow outgoing`
-- `$ sudo ufw allow from 192.168.0.0/16 to any port {SSH-PORT} proto tcp`
-- `$ sudo ufw enable`
-
-### 6. add static ip address
-
-Make and configure `/etc/netplan/99_config.yaml`.
-
-```yaml
-network:
-  version: 2
-  renderer: networkd
-  ethernets:
-    eno1:
-      dhcp4: false
-      dhcp6: false
-      addresses: [IP_ADDRESS/24]
-      gateway4: DEFAULT_GATEWAY_ADDRESS
-      nameservers:
-        addresses: [NAMESERVER_ADDRESS]
-```
-
-#### References
-
-- [Network - Configuration | Ubuntu](https://ubuntu.com/server/docs/network-configuration)
-- [Netplan - Reference | Backend-agnostic network configuration in YAML](https://netplan.io/reference/)
-
-## Setup host
+## Control PC
 
 ### 1. Install Ansible
 
@@ -84,11 +21,73 @@ Make `secret.yml`
 
 Add values to `secret.yml`.
 
-### 3. Deploy
+## Host server
+
+### Initial setup
+
+#### 1. install OS
+
+Install Proxmox VE 7.
+
+#### 2. generate ssh key
+
+Generate ssh key at another pc.
+
+`$ ssh-keygen -t rsa -b 4096`
+
+#### 3. add public key
+
+Add public key to HomeServer host.
+
+`$ ssh-copy-id -i ~/.ssh/{PUBLIC_KEY} {USER}@{IP_ADDRESS}`
+
+#### 4. configure sshd
+
+`$ sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.d/sshd.conf`
+
+Edit `/etc/ssh/sshd_config.d/sshd.conf`
+
+- `Port {PORT}`
+- `PermitRootLogin: prohibit-password`
+- `PubkeyAuthentication yes`
+- `PasswordAuthentication no`
+- `PermitEmptyPasswords no`
+
+and restart sshd.
+
+`$ sudo systemctl restart sshd.service`
+
+#### 5. configure network
+
+Use vlan host and vms.
+
+Make and configure `/etc/network/interfaces.d/interfaces`.
+
+```text
+
+auto vmbr0
+iface vmbr0 inet manual
+        bridge-ports eno1
+        bridge-stp off
+        bridge-fd 0
+        bridge-vlan-aware yes
+        bridge-vids 2-4094
+
+auto vmbr0.VLAN_ID
+iface vmbr0.VLAN_ID inet static
+        address IP_ADDRESS/24
+        gateway DEFAULT_GATEWAY_ADDRESS
+```
+
+##### References
+
+- [Network Configuration - Host System Administration | Proxmox](https://pve.proxmox.com/pve-docs/chapter-sysadmin.html#sysadmin_network_configuration)
+
+### Setup host
 
 `$ ./deploy.sh`
 
-## Add storage
+### Add storage
 
 Check added storage.
 
@@ -169,3 +168,74 @@ Add following lines to /etc/fstab to mount automatically.
 
     # /mnt/storage was on /dev/sdb1 during curtin installation
     /dev/disk/by-uuid/32c47853-314f-4b8a-ae93-3d9b5dd5aa77 /mnt/storage ext4 defaults 0 0
+
+## VM
+
+### Initial setup
+
+#### 1. install OS
+
+Install Ubuntu 20.04.02
+
+#### 2. generate ssh key
+
+Generate ssh key at another pc.
+
+`$ ssh-keygen -t rsa -b 4096`
+
+#### 3. add public key
+
+Add public key to HomeServer host.
+
+`$ ssh-copy-id -i ~/.ssh/{PUBLIC_KEY} {USER}@{IP_ADDRESS}`
+
+#### 4. configure sshd
+
+`$ sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.d/sshd.conf`
+
+Edit `/etc/ssh/sshd_config.d/sshd.conf`
+
+- `Port {PORT}`
+- `PermitRootLogin: prohibit-password`
+- `PubkeyAuthentication yes`
+- `PasswordAuthentication no`
+
+and restart sshd.
+
+`$ sudo systemctl restart sshd.service`
+
+#### 5. configure firewalld
+
+- `$ sudo ufw default deny incoming`
+- `$ sudo ufw default allow outgoing`
+- `$ sudo ufw allow from 192.168.2.0/24 to any port {SSH-PORT} proto tcp`
+- `$ sudo ufw enable`
+
+#### 6. add static ip address
+
+Make and configure `/etc/netplan/99_config.yaml`.
+
+```yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eno1:
+      dhcp4: false
+      dhcp6: false
+      addresses: [IP_ADDRESS/24]
+      gateway4: DEFAULT_GATEWAY_ADDRESS
+      nameservers:
+        addresses: [NAMESERVER_ADDRESS]
+```
+
+##### References
+
+- [Network - Configuration | Ubuntu](https://ubuntu.com/server/docs/network-configuration)
+- [Netplan - Reference | Backend-agnostic network configuration in YAML](https://netplan.io/reference/)
+
+### Setup host
+
+Use ansbile in control pc.
+
+`$ ./deploy.sh`
